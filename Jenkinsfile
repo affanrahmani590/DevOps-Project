@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        APP_PORT = '8000' 
+        APP_PORT = '8085' // Changed external port to 8085
         CONTAINER_NAME = 'login-admin-app'
         IMAGE_NAME = 'login-admin-project:latest'
     }
@@ -11,7 +11,7 @@ pipeline {
         // 1. Get latest code from GitHub
         stage('Checkout Code') {
             steps {
-                cleanWs() 
+                cleanWs()
                 checkout scm
             }
         }
@@ -27,29 +27,18 @@ pipeline {
         stage('Cleanup Old Container') {
             steps {
                 script {
-                    def containerExists = sh(script: "docker ps -a -q -f name=${CONTAINER_NAME}", returnStdout: true).trim()
-                    if (containerExists) {
-                        sh "docker stop ${CONTAINER_NAME} || true"
-                        sh "docker rm ${CONTAINER_NAME} || true"
-                    }
+                    // Stops and removes container only if it is already running
+                    sh "docker stop ${CONTAINER_NAME} || true"
+                    sh "docker rm ${CONTAINER_NAME} || true"
                 }
             }
         }
 
-        // 4. Run new container
-        stage('Deploy') {
+        // 4. Run the new container with correct port mapping
+        stage('Deploy Container') {
             steps {
-                sh "docker run -d --name ${CONTAINER_NAME} -p ${APP_PORT}:${APP_PORT} ${IMAGE_NAME}"
+                sh "docker run -d -p ${APP_PORT}:80 --name ${CONTAINER_NAME} ${IMAGE_NAME}"
             }
-        }
-    }
-
-    post {
-        success {
-            echo 'Deployment successful!'
-        }
-        failure {
-            echo 'Deployment failed!'
         }
     }
 }

@@ -1,11 +1,12 @@
-# 1. Use the official Apache HTTP Server image
+# Use the official Apache HTTP Server image from Docker Hub
 FROM httpd:latest
 
-# 2. Set the working directory inside the container
+# Set the default working directory inside the container
 WORKDIR /usr/local/apache2/htdocs/
 
-# 3. Copy login, admin, and register page files into Apache web directory
-COPY . /usr/local/apache2/htdocs/
+# Copy all project files from your local directory to the working directory
+COPY . . 
 
-# 4. Expose port 80 for web traffic
+# Document that the container listens on port 80 at runtime
 EXPOSE 80
+
