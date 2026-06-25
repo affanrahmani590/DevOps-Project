@@ -2,13 +2,13 @@ pipeline {
     agent any
 
     environment {
-        APP_PORT = '8085' // Changed external port to 8085
-        CONTAINER_NAME = 'login-admin-app'
+        // App port 30000 is used in deployment.yaml, keeping this for documentation
+        APP_PORT = '30000' 
         IMAGE_NAME = 'login-admin-project:latest'
     }
 
     stages {
-        // 1. Get latest code from GitHub
+        // 1. Get latest code from GitHub (including deployment.yaml)
         stage('Checkout Code') {
             steps {
                 cleanWs()
@@ -16,28 +16,26 @@ pipeline {
             }
         }
 
-        // 2. Build Docker image
+        // 2. Build Docker image locally
         stage('Build Docker Image') {
             steps {
                 sh "docker build -t ${IMAGE_NAME} ."
             }
         }
 
-        // 3. Stop and remove old container if it exists
-        stage('Cleanup Old Container') {
+        // 3. Deploy or Update the application in Kubernetes cluster
+        stage('Deploy to Kubernetes') {
             steps {
-                script {
-                    // Stops and removes container only if it is already running
-                    sh "docker stop ${CONTAINER_NAME} || true"
-                    sh "docker rm ${CONTAINER_NAME} || true"
-                }
+                // This applies your deployment.yaml file automatically
+                sh "kubectl apply -f deployment.yaml"
             }
         }
 
-        // 4. Run the new container with correct port mapping
-        stage('Deploy Container') {
+        // 4. Verify if the pods and services are running fine
+        stage('Verify Deployment') {
             steps {
-                sh "docker run -d -p ${APP_PORT}:80 --name ${CONTAINER_NAME} ${IMAGE_NAME}"
+                sh "kubectl get pods"
+                sh "kubectl get service login-admin-service"
             }
         }
     }
