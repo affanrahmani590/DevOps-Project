@@ -9,6 +9,3 @@ COPY . .
 
 # Document that the container listens on port 80 at runtime
 EXPOSE 80
-
-# Affan Rahmani
-
